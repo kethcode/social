@@ -5,17 +5,28 @@ import { ethers } from "hardhat";
 import { MinEthersFactory } from "../typechain-types/common";
 
 describe("Social", function () {
-  // We define a fixture to reuse the same setup in every test.
-  // We use loadFixture to run this setup once, snapshot that state,
-  // and reset Hardhat Network to that snapshopt in every test.
   async function deploySocialContract() {
-    // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
 
     const Social = await ethers.getContractFactory("Social");
     const social = await Social.deploy();
 
     return { social, owner, otherAccount };
+  }
+
+  async function deployAppExample() {
+    const [owner, org, user1, user2] = await ethers.getSigners();
+
+    const Social = await ethers.getContractFactory("Social");
+    const social = await Social.deploy();
+
+    const NFT = await ethers.getContractFactory("ERC721E");
+    const nft = await NFT.deploy(
+      "https://localhost:4200/",
+      "https://localhost:4201/"
+    );
+
+    return { social, nft, owner, org, user1, user2 };
   }
 
   describe("Deployment", function () {
@@ -254,21 +265,21 @@ describe("Social", function () {
       ).to.emit(social, "ApprovalChanged");
     });
     it("Should fail to set value to a specific key on a remote address, without approval", async function () {
-		const { social, owner, otherAccount } = await loadFixture(
-		  deploySocialContract
-		);
+      const { social, owner, otherAccount } = await loadFixture(
+        deploySocialContract
+      );
 
-		await expect(
-		  social
-			.connect(otherAccount)
-			.set(
-			  owner.address,
-			  otherAccount.address,
-			  "alphaTester:invited",
-			  "true"
-			)
-		).to.be.reverted;
-	  });
+      await expect(
+        social
+          .connect(otherAccount)
+          .set(
+            owner.address,
+            otherAccount.address,
+            "alphaTester:invited",
+            "true"
+          )
+      ).to.be.reverted;
+    });
 
     it("Should set value to a specific key on a remote address, after approved", async function () {
       const { social, owner, otherAccount } = await loadFixture(
@@ -288,22 +299,96 @@ describe("Social", function () {
       ).to.not.be.reverted;
     });
 
-	it("Should set value to a specific key on a remote address, if ApproveAll", async function () {
-		const { social, owner, otherAccount } = await loadFixture(
-		  deploySocialContract
-		);
-		await social.approve(otherAccount.address, "ApproveAll", true);
-  
-		await expect(
-		  social
-			.connect(otherAccount)
-			.set(
-			  owner.address,
-			  otherAccount.address,
-			  "alphaTester:invited",
-			  "true"
-			)
-		).to.not.be.reverted;
-	  });
+    it("Should set value to a specific key on a remote address, if ApproveAll", async function () {
+      const { social, owner, otherAccount } = await loadFixture(
+        deploySocialContract
+      );
+      await social.approve(otherAccount.address, "ApproveAll", true);
+
+      await expect(
+        social
+          .connect(otherAccount)
+          .set(
+            owner.address,
+            otherAccount.address,
+            "alphaTester:invited",
+            "true"
+          )
+      ).to.not.be.reverted;
+    });
+  });
+});
+
+describe("App Example", function () {
+  async function deployAppExample() {
+    const [owner, org, user1, user2] = await ethers.getSigners();
+
+    const Social = await ethers.getContractFactory("Social");
+    const social = await Social.deploy();
+
+    const NFT = await ethers.getContractFactory("ERC721E");
+    const nft = await NFT.deploy(
+      "https://localhost:4200/",
+      "https://localhost:4201/"
+    );
+
+    return { social, nft, owner, org, user1, user2 };
+  }
+
+  describe("Simple Mintlist", function () {
+    it("Org should add user1 to invite list", async function () {
+      const { social, nft, owner, org, user1, user2 } = await loadFixture(
+        deployAppExample
+      );
+
+      await social
+        .connect(org)
+        .set(org.address, user1.address, "mintList:invited", "true");
+
+      expect(
+        await social
+          .connect(org)
+          .get(org.address, user1.address, "mintList:invited")
+      ).to.deep.equal("true");
+    });
+    it("User1 can check if they are invited", async function () {
+      const { social, nft, owner, org, user1, user2 } = await loadFixture(
+        deployAppExample
+      );
+
+      await social
+        .connect(org)
+        .set(org.address, user1.address, "mintList:invited", "true");
+
+      expect(
+        await social
+          .connect(user1)
+          .get(org.address, user1.address, "mintList:invited")
+      ).to.deep.equal("true");
+    });
+
+    it("User1 can accept the invitation (self assert and check mutual)", async function () {
+      const { social, nft, owner, org, user1, user2 } = await loadFixture(
+        deployAppExample
+      );
+
+      await social
+        .connect(org)
+        .set(org.address, user1.address, "mintList:invited", "true");
+
+      await social
+        .connect(user1)
+        .get(org.address, user1.address, "mintList:invited");
+
+      await social
+        .connect(user1)
+        .set(user1.address, org.address, "mintList:invited", "true");
+
+      expect(
+        await social
+          .connect(user1)
+          .isMutual(org.address, user1.address, "mintList:invited")
+      ).to.be.true;
+    });
   });
 });
