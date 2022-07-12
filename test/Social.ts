@@ -287,5 +287,23 @@ describe("Social", function () {
           )
       ).to.not.be.reverted;
     });
+
+	it("Should set value to a specific key on a remote address, if ApproveAll", async function () {
+		const { social, owner, otherAccount } = await loadFixture(
+		  deploySocialContract
+		);
+		await social.approve(otherAccount.address, "ApproveAll", true);
+  
+		await expect(
+		  social
+			.connect(otherAccount)
+			.set(
+			  owner.address,
+			  otherAccount.address,
+			  "alphaTester:invited",
+			  "true"
+			)
+		).to.not.be.reverted;
+	  });
   });
 });
