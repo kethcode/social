@@ -89,7 +89,7 @@ contract Social {
 			(canEdit(_sender, _recipient, "ApproveAll")),
             "Not Authorized to Edit"
         );
-        graph[_sender][_recipient][Bytes32(_key)] = _value;
+        graph[_sender][_recipient][_stringToHash(_key)] = _value;
         emit EdgeAdded(_sender, _recipient, _key, _value);
     }
 
@@ -98,7 +98,7 @@ contract Social {
         address _recipient,
         string memory _key
     ) public view returns (string memory) {
-        return graph[_sender][_recipient][Bytes32(_key)];
+        return graph[_sender][_recipient][_stringToHash(_key)];
     }
 
     function isMutual(
@@ -107,8 +107,8 @@ contract Social {
         string memory _key
     ) public view returns (bool) {
         return
-            Bytes32(graph[_sender][_recipient][Bytes32(_key)]) ==
-            Bytes32(graph[_recipient][_sender][Bytes32(_key)]);
+            _stringToHash(graph[_sender][_recipient][_stringToHash(_key)]) ==
+            _stringToHash(graph[_recipient][_sender][_stringToHash(_key)]);
     }
 
     function approve(
@@ -116,7 +116,7 @@ contract Social {
         string memory _key,
         bool _value
     ) public {
-        approved[msg.sender][_editor][Bytes32(_key)] = _value;
+        approved[msg.sender][_editor][_stringToHash(_key)] = _value;
         emit ApprovalChanged(msg.sender, _editor, _key, _value);
     }
 
@@ -125,14 +125,14 @@ contract Social {
         address _editor,
         string memory _key
     ) public view returns (bool) {
-        return approved[_target][_editor][Bytes32(_key)];
+        return approved[_target][_editor][_stringToHash(_key)];
     }
 
     /// ------------------------------------------------------------------------
     /// Utility Functions
     /// ------------------------------------------------------------------------
 
-    function Bytes32(string memory _input) internal pure returns (bytes32) {
+    function _stringToHash(string memory _input) internal pure returns (bytes32) {
         return keccak256(abi.encode(_input));
     }
 }
