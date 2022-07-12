@@ -112,20 +112,20 @@ contract Social {
     }
 
     function approve(
-        address _recipient,
+        address _editor,
         string memory _key,
         bool _value
     ) public {
-        approved[msg.sender][_recipient][Bytes32(_key)] = _value;
-        emit ApprovalChanged(msg.sender, _recipient, _key, _value);
+        approved[msg.sender][_editor][Bytes32(_key)] = _value;
+        emit ApprovalChanged(msg.sender, _editor, _key, _value);
     }
 
     function canEdit(
-        address _sender,
-        address _recipient,
+        address _target,
+        address _editor,
         string memory _key
     ) public view returns (bool) {
-        return approved[_sender][_recipient][Bytes32(_key)];
+        return approved[_target][_editor][Bytes32(_key)];
     }
 
     /// ------------------------------------------------------------------------

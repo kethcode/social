@@ -253,19 +253,39 @@ describe("Social", function () {
         await social.approve(otherAccount.address, "alphaTester:invited", true)
       ).to.emit(social, "ApprovalChanged");
     });
+    it("Should fail to set value to a specific key on a remote address, without approval", async function () {
+		const { social, owner, otherAccount } = await loadFixture(
+		  deploySocialContract
+		);
+
+		await expect(
+		  social
+			.connect(otherAccount)
+			.set(
+			  owner.address,
+			  otherAccount.address,
+			  "alphaTester:invited",
+			  "true"
+			)
+		).to.be.reverted;
+	  });
+
     it("Should set value to a specific key on a remote address, after approved", async function () {
       const { social, owner, otherAccount } = await loadFixture(
         deploySocialContract
       );
       await social.approve(otherAccount.address, "alphaTester:invited", true);
 
-      expect(
-        await social.canEdit(
-          owner.address,
-          otherAccount.address,
-          "alphaTester:invited"
-        )
-      ).to.be.true;
+      await expect(
+        social
+          .connect(otherAccount)
+          .set(
+            owner.address,
+            otherAccount.address,
+            "alphaTester:invited",
+            "true"
+          )
+      ).to.not.be.reverted;
     });
   });
 });
