@@ -23,7 +23,7 @@
 		approve(address _recipient, string memory _key, bool _value)
 		canEdit(address _sender, address _recipient, string memory _key) returns (bool)
 
-
+```
 
   Social
     Deployment
@@ -64,17 +64,7 @@
 |  Social                 ·          -  ·          -  ·     579666  ·        1.9 %  ·          -  │
 ·-------------------------|-------------|-------------|-------------|---------------|-------------·
 
-
-
-
-
-
-
-
-
-
-
-
+```
 
 # Sample Hardhat Project
 
