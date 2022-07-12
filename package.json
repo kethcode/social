@@ -1,0 +1,28 @@
+{
+  "dependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^1.0.1",
+    "dotenv": "^16.0.1",
+    "hardhat": "^2.10.0"
+  },
+  "name": "social",
+  "description": "",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {
+    "mocha": "^10.0.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kethcode/social.git"
+  },
+  "keywords": [],
+  "author": "kethcode",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kethcode/social/issues"
+  },
+  "homepage": "https://github.com/kethcode/social#readme"
+}
