@@ -36,25 +36,37 @@ import "hardhat/console.sol";
 /// ----------------------------------------------------------------------------
 /// Contract Imports
 /// ----------------------------------------------------------------------------
-import "./ISocial.sol";
 
 /**
  * @title Social
  */
-contract Social is ISocial {
+interface ISocial {
+    /// ------------------------------------------------------------------------
+    /// Events
+    /// ------------------------------------------------------------------------
+    event EdgeAdded(
+        address indexed sender,
+        address indexed recipient,
+        string indexed key,
+        string value
+    );
+
+    // gives remote contracts permission to edit senders keys
+    // the ApproveAll key can be used for blanket permissions, perhaps
+    event ApprovalChanged(
+        address indexed sender,
+        address indexed recipient,
+        string indexed key,
+        bool value
+    );
+
     /// ------------------------------------------------------------------------
     /// Variables
     /// ------------------------------------------------------------------------
-    address public owner;
-    mapping(address => mapping(address => mapping(bytes32 => string))) graph;
-    mapping(address => mapping(address => mapping(bytes32 => bool))) approved;
 
     /// ------------------------------------------------------------------------
     /// Constructor
     /// ------------------------------------------------------------------------
-    constructor() {
-        owner = msg.sender;
-    }
 
     /// ------------------------------------------------------------------------
     /// Public Functions
@@ -64,61 +76,29 @@ contract Social is ISocial {
         address _recipient,
         string memory _key,
         string memory _value
-    ) public override {
-        require(
-            (_sender == msg.sender) ||
-                (canEdit(_sender, _recipient, _key)) ||
-                (canEdit(_sender, _recipient, "ApproveAll")),
-            "Not Authorized to Edit"
-        );
-        graph[_sender][_recipient][_stringToHash(_key)] = _value;
-        emit EdgeAdded(_sender, _recipient, _key, _value);
-    }
+    ) external;
 
     function get(
         address _sender,
         address _recipient,
         string memory _key
-    ) public view override returns (string memory) {
-        return graph[_sender][_recipient][_stringToHash(_key)];
-    }
+    ) external view returns (string memory);
 
     function isMutual(
         address _sender,
         address _recipient,
         string memory _key
-    ) public view override returns (bool) {
-        return
-            _stringToHash(graph[_sender][_recipient][_stringToHash(_key)]) ==
-            _stringToHash(graph[_recipient][_sender][_stringToHash(_key)]);
-    }
+    ) external view returns (bool);
 
     function approve(
         address _editor,
         string memory _key,
         bool _value
-    ) public override {
-        approved[msg.sender][_editor][_stringToHash(_key)] = _value;
-        emit ApprovalChanged(msg.sender, _editor, _key, _value);
-    }
+    ) external;
 
     function canEdit(
         address _target,
         address _editor,
         string memory _key
-    ) public view override returns (bool) {
-        return approved[_target][_editor][_stringToHash(_key)];
-    }
-
-    /// ------------------------------------------------------------------------
-    /// Utility Functions
-    /// ------------------------------------------------------------------------
-
-    function _stringToHash(string memory _input)
-        internal
-        pure
-        returns (bytes32)
-    {
-        return keccak256(abi.encode(_input));
-    }
+    ) external view returns (bool);
 }
